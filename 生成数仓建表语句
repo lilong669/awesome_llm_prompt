@@ -1,0 +1,63 @@
+ods表生产dwd层模型(直接给出答案)：
+ods表(fymx 费用明细 plmx损益明细 cymx餐饮明细)：
+api_t_api_jishi_view_resort
+ods表结构：
+resort	string	NULL	No	No	resort
+tenant_id	string	NULL	No	No	tenant_id
+resort_name	string	NULL	No	No	resort_name
+types	string	NULL	No	No	types
+order_number	string	NULL	No	No	order_number
+business_date	string	NULL	No	No	business_date
+local_currency	string	NULL	No	No	local_currency
+update_date	string	NULL	No	No	update_date
+management	string	NULL	No	No	management
+manage_group	string	NULL	No	No	manage_group
+star_rate	string	NULL	No	No	star_rate
+grade	string	NULL	No	No	grade
+short_name	string	NULL	No	No	short_name
+city_rate	string	NULL	No	No	city_rate
+region	string	NULL	No	No	region
+brand	string	NULL	No	No	brand
+create_time	timestamp	NULL	No	No	创建时间
+update_time	timestamp	NULL	No	No	更新时间
+dwd层模型名字:dim_hotel_shiji_{ods表名规范化}
+dwd层模型脚本示例：
+-- model_name: dwd_hotel_catering_detail_actual_data_by_month
+-- descript: 酒店餐饮明细按月实际数据表
+-- date: 20250415
+-- author: lilong
+
+set character.literal.as.string = true;
+set argodb.dynamic.create.partition.enabled = true;
+set hive.exec.dynamic.partition = true;
+set stargate.dynamic.partition.enabled = true;
+set hive.default.fileformat = holodesk;
+
+drop table if exists dwd.dwd_hotel_shiji_catering_detail_actual_data_by_month;
+
+create table if not exists dwd.dwd_hotel_shiji_catering_detail_actual_data_by_month (
+    tenant_id string comment '租户ID',
+    resort_name string comment '酒店名称',
+    resort_code string comment '酒店编码',
+    kpi_name string comment '指标名称',
+    kpi_code string comment '指标编码',
+    business_date string comment '业务日期',
+    metric_value decimal(38,10) comment '餐饮指标实际值',
+    create_time timestamp comment '创建时间',
+    update_time timestamp comment '更新时间'
+)
+comment '酒店餐饮明细按月实际数据表'
+stored as holodesk;
+
+insert into dwd.dwd_hotel_shiji_catering_detail_actual_data_by_month
+select 
+    tenant_id,
+    resort_name,
+    resort as resort_code,
+    kpi_name,
+    kpi_code,
+    business_date,
+    cast(actual as decimal(38,10)) as metric_value,
+    create_time,
+    update_time
+from ods.api_t_api_jishi_view_exl_hotelcymxactualdatabymonth;
